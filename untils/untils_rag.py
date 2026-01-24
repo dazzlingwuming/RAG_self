@@ -5,7 +5,11 @@ from datetime import datetime
 
 
 def format_docs(docs):
+    if isinstance(docs, str):
+        return docs
     return "\n\n".join(doc.page_content for doc in docs)
+
+
 
 # 新增：记忆持久化功能（保存到JSON文件）
 def save_memory_to_file(memory, session_id="default_user", file_path="conversation_history.json"):
@@ -60,16 +64,17 @@ def load_history_from_file( session_id="default_user", file_path="conversation_h
     return recent_history
 
 #从llm的回复构建历史记录
-def build_history_from_llm_response(user_message, ai_response):
+def build_history_from_llm_response(question,response):
     """
     user_message: str 用户消息
     ai_response: str AI回复
     :return list  [role: str, content: str]
+    [{"type": "human", "content": "用户消息"}, {"type": "ai", "content": "AI回复"}]
     """
-    history = []
-    history.append({"human": user_message})
-    history.append({"ai": ai_response})
-    return history
+    keyword_index = response.find("\n</think>\n\n")
+    new_history = [{"type":"human","content": question}, {"type":"ai","content": response[keyword_index + len("\n</think>\n\n"):]}]
+
+    return new_history
 
 
 if __name__ == "__main__":
