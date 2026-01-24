@@ -109,8 +109,9 @@ def t5():
         strategy="fast",
     ).load()
     print(word_documents)
+    return word_documents
 
-def t5(documents):
+def t6(documents):
     import re
     import json
 
@@ -148,7 +149,7 @@ def t5(documents):
         return cleaned_docs
     return clean_content(documents)
 
-def t6():
+def t7():
     con1 = t1()
     con2 = t2()
     # t3()
@@ -164,8 +165,9 @@ if __name__ == "__main__":
     con2 = t2()
     # t3()
     con3 = t4()
-    con = con1 + con2 + con3
-    clean_docs = t5(con)
+    con4 = t5()
+    con = con1 + con2 + con3 + con4
+    clean_docs = t6(con)
     for doc in clean_docs:
         print(doc)
     path = "数据.pkl"

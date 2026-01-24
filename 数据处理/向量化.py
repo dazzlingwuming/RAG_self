@@ -26,7 +26,7 @@ def chroma_vect(texts , embedding_model):
     vectorstore = Chroma.from_documents(
         texts,  # 文档列表
         embedding_model,  # 嵌入模型
-        persist_directory="vectorstore",  # 存储路径
+        persist_directory="vectorstore_rag",  # 存储路径
     )
     print(vectorstore.get().keys())  # 查看所有属性
     print(vectorstore.get(include=["embeddings"])["embeddings"][:5, :5])  # 查看嵌入向量
@@ -92,33 +92,34 @@ if __name__ == "__main__":
     # with open("数据分块.pkl", "rb") as f:
     #     texts = pickle.load(f)
     # print(texts)
-    # # t1(texts,embedding_model)
     # chroma_vect(texts,embedding_model)
 
-    # 加载已有向量库
+    # # 加载已有向量库
     vectorstore = Chroma(
         embedding_function=embedding_model,
-        persist_directory="vectorstore",
+        persist_directory="vectorstore_rag",
     )
-    # 实时新增的 PDF Document（比如从第2页提取的内容）
-    '''需要注意的是如果重复添加相同内容，Chroma不会自动去重，会将其作为新的文档处理，从而导致向量库中存在重复的嵌入向量和文档条目。因此，在添加新文档之前，最好先检查是否已经存在相同或相似的内容，以避免冗余数据的积累。'''
-    new_docs = [
-        Document(
-            page_content="兵者，诡道也。故能而示之不能，用而示之不用。",
-            metadata={"source": "111111", "page_number": 2}
-        ),
-        Document(
-            page_content="不战而屈人之兵，善之善者也。",
-            metadata={"source": "1111111", "page_number": 3}
-        )
-    ]
-    # chroma_add(vectorstore , new_docs)
-    # print(vectorstore.get())
-
-
+    # # 实时新增的 PDF Document（比如从第2页提取的内容）
+    # '''需要注意的是如果重复添加相同内容，Chroma不会自动去重，会将其作为新的文档处理，从而导致向量库中存在重复的嵌入向量和文档条目。因此，在添加新文档之前，最好先检查是否已经存在相同或相似的内容，以避免冗余数据的积累。'''
+    # new_docs = [
+    #     Document(
+    #         page_content="兵者，诡道也。故能而示之不能，用而示之不用。",
+    #         metadata={"source": "111111", "page_number": 2}
+    #     ),
+    #     Document(
+    #         page_content="不战而屈人之兵，善之善者也。",
+    #         metadata={"source": "1111111", "page_number": 3}
+    #     )
+    # ]
+    # # chroma_add(vectorstore , new_docs)
+    # # print(vectorstore.get())
+    #
+    #
     #查询内容获得具体的id
-    query_doc = "不战而屈人之兵"
-    chroma_query_id(vectorstore, query_doc)
-
-    # 删除向量库中的文档
-    # chroma_delete(vectorstore,ids='7fb62ae8-d8fb-4e77-8b50-62f6eec2f3e4')
+    query_doc = "宣告该自然人死亡应该是怎么样子才行"
+    # chroma_query_id(vectorstore, query_doc)
+    print(vectorstore.similarity_search(query_doc,k=3))
+    #
+    # # 删除向量库中的文档
+    # # chroma_delete(vectorstore,ids='7fb62ae8-d8fb-4e77-8b50-62f6eec2f3e4')
+    pass

@@ -4,20 +4,6 @@ import torch
 from langchain_chroma import Chroma
 from langchain_huggingface import HuggingFaceEmbeddings
 
-embedding_model = HuggingFaceEmbeddings(
-    model_name="../model/bge-base-zh-v1.5",
-    model_kwargs={"device": "cuda" if torch.cuda.is_available() else "cpu"},
-    encode_kwargs={
-        "normalize_embeddings": True
-    },  # 输出归一化向量，更适合余弦相似度计算
-)
-# 加载已有向量库
-vectorstore = Chroma(
-    embedding_function=embedding_model,
-    persist_directory="../数据处理/vectorstore",
-)
-
-
 
 def chroma_base_query(text , k ):
     '''基础查询向量库'''
@@ -58,7 +44,20 @@ def chroma_retriever_query(text , k ):
         print(f"[{idx + 1}] 内容：{doc.page_content[:200]}...")  # 只显示前200个字符
 
 if __name__ == "__main__":
-    query_text = "Bash 中的“here documents”是什么？"
-    # chroma_base_query(query_text,k=3)
+    embedding_model = HuggingFaceEmbeddings(
+        model_name="../model/bge-base-zh-v1.5",
+        model_kwargs={"device": "cuda" if torch.cuda.is_available() else "cpu"},
+        encode_kwargs={
+            "normalize_embeddings": True
+        },  # 输出归一化向量，更适合余弦相似度计算
+    )
+    # 加载已有向量库
+    vectorstore = Chroma(
+        embedding_function=embedding_model,
+        persist_directory="D:/github/RAG_self/数据处理/vectorstore_rag",
+    )
+
+    query_text = "宣告该自然人死亡应该是怎么样子才行"
+    print(vectorstore.similarity_search(query_text, k=3))
     # chroma_max_marginal_query(query_text, k=5)
-    chroma_retriever_query(query_text, k=5)
+    # chroma_retriever_query(query_text, k=5)

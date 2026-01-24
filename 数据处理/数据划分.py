@@ -23,7 +23,7 @@ if __name__ == "__main__":
     with open("数据.pkl", "rb") as f:
         documents = pickle.load(f)
     print(documents)
-    text_split(documents)
+    text = text_split(documents)
     path = "数据分块.pkl"
     with open(path, "wb") as f:
-        pickle.dump(documents, f)
+        pickle.dump(text, f)
