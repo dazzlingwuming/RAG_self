@@ -84,7 +84,7 @@ if __name__ == "__main__":
     # 加载嵌入模型
     embedding_model = HuggingFaceEmbeddings(
         model_name="../model/bge-base-zh-v1.5",
-        model_kwargs={"device": "cuda" if torch.cuda.is_available() else "cpu"},
+        model_kwargs={"device": "cpu"},
         encode_kwargs={
             "normalize_embeddings": True
         },  # 输出归一化向量，更适合余弦相似度计算
@@ -97,7 +97,7 @@ if __name__ == "__main__":
     # # 加载已有向量库
     vectorstore = Chroma(
         embedding_function=embedding_model,
-        persist_directory="vectorstore_rag",
+        persist_directory="../vectorstore_rag",
     )
     # # 实时新增的 PDF Document（比如从第2页提取的内容）
     # '''需要注意的是如果重复添加相同内容，Chroma不会自动去重，会将其作为新的文档处理，从而导致向量库中存在重复的嵌入向量和文档条目。因此，在添加新文档之前，最好先检查是否已经存在相同或相似的内容，以避免冗余数据的积累。'''
@@ -115,11 +115,11 @@ if __name__ == "__main__":
     # # print(vectorstore.get())
     #
     #
-    #查询内容获得具体的id
+    # 查询内容获得具体的id
     query_doc = "宣告该自然人死亡应该是怎么样子才行"
     # chroma_query_id(vectorstore, query_doc)
     print(vectorstore.similarity_search(query_doc,k=3))
-    #
+
     # # 删除向量库中的文档
     # # chroma_delete(vectorstore,ids='7fb62ae8-d8fb-4e77-8b50-62f6eec2f3e4')
     pass
