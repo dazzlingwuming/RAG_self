@@ -19,7 +19,7 @@ llm = OpenAI(
     api_key=api_key,
     base_url=base_url,
     temperature=0.1,
-    model_kwargs={"stream_options" : True}
+    # model_kwargs={"stream_options" : True}
     )
 
 prompt = PromptTemplate(
