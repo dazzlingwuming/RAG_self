@@ -1,6 +1,6 @@
 from openai import OpenAI
 
-client = OpenAI(api_key="sk-fpcaglagjwvhtwfzkynhlmbsjqkfjwylzrtqcrntzqqqkcwg",
+client = OpenAI(api_key="XXXXXXXXXX",
                 base_url="https://api.siliconflow.cn/v1")
 response = client.chat.completions.create(
     # model='Pro/deepseek-ai/DeepSeek-R1',
