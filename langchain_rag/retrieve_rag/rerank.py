@@ -182,8 +182,9 @@ if __name__ == "__main__":
     #加载检索器
     retriever = get_retriever(k=20, embedding_model=embedding_model)
     #构建输入
-    history = load_history_from_file(session_id="小黄", file_path=configRag.history_path)
-    query = "法人是什么？"
+    session_id = "小米"
+    history = load_history_from_file(session_id=session_id, file_path=configRag.history_path)
+    query = "国家、集体和私人依法可以出资设立有限责任公司、股份有限公司或者其他企业吗？"
     inputs = {"query": query, "history": history}
     #执行重排序
     rerank_results = rerank_langchain(inputs, llm, retriever, rerank_model, rerank_model_tokenizer, device, top_k=10,multi_query_num=5)
@@ -193,7 +194,7 @@ if __name__ == "__main__":
     print(response)
     #保存历史记录
     new_Dialogue = build_history_from_llm_response_no_think(query, response)
-    save_memory_to_file(session_id="小黄", memory=new_Dialogue,file_path=configRag.history_path)
+    save_memory_to_file(session_id=session_id, memory=new_Dialogue,file_path=configRag.history_path)
 
 
     pass
