@@ -3,7 +3,7 @@ import os
 from openai import OpenAI
 
 client = OpenAI(
-    api_key='sk-8ff73cc60b3b4cc295924280890d2f12',
+    api_key='xxxxxxxxxxxx',
     base_url="https://api.deepseek.com")
 
 response = client.invoke("你好，请介绍一下自己。")
