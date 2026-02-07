@@ -3,8 +3,10 @@ import json
 import os
 from datetime import datetime
 
+from langchain_core.documents import Document
 
-def format_docs(docs):
+
+def format_docs(docs:list[Document]) -> str:
     if isinstance(docs, str):
         return docs
     return "\n\n".join(doc.page_content for doc in docs)
@@ -29,7 +31,11 @@ def save_memory_to_file(memory, session_id="default_user", file_path="conversati
     if os.path.exists(file_path):
         with open(file_path, "r", encoding="utf-8") as f:
             data = json.load(f)
-    data[session_id] = history_dict
+    # 如果 session_id 已存在，追加新数据
+    if session_id in data:
+        data[session_id].extend(history_dict)
+    else:
+        data[session_id] = history_dict
     # 写入文件
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
@@ -61,9 +67,23 @@ def load_history_from_file( session_id="default_user", file_path="conversation_h
             history.append({"ai":msg["content"]})
 
     recent_history = history[-last_x_messages:] if len(history) >= last_x_messages else history
+
     return recent_history
 
-#从llm的回复构建历史记录
+#格式化历史记录
+def format_history_for_llm(history):
+    history_str = ""
+    if isinstance(history, list):
+        for i in range(len(history)):
+            if "human" in history[i]:  # 如果是用户的问题
+                history_str += f"Q: {history[i]['human']}\n"
+            elif "ai" in history[i]:  # 如果是 AI 的回答
+                history_str += f"A: {history[i]['ai']}\n"
+    else:
+        history_str = str(history)
+    return history_str
+
+#从思考llm的回复构建历史记录
 def build_history_from_llm_response(question,response):
     """
     user_message: str 用户消息
@@ -75,6 +95,19 @@ def build_history_from_llm_response(question,response):
     new_history = [{"type":"human","content": question}, {"type":"ai","content": response[keyword_index + len("\n</think>\n\n"):]}]
 
     return new_history
+
+#从无思考llm的回复构建历史记录
+def build_history_from_llm_response_no_think(question,response):
+    """
+    user_message: str 用户消息
+    ai_response: str AI回复
+    :return list  [role: str, content: str]
+    [{"type": "human", "content": "用户消息"}, {"type": "ai", "content": "AI回复"}]
+    """
+    new_history = [{"type":"human","content": question}, {"type":"ai","content": response}]
+
+    return new_history
+
 
 
 if __name__ == "__main__":
