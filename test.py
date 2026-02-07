@@ -1,21 +1,21 @@
-# 加载嵌入模型
-from langchain_chroma import Chroma
-from langchain_huggingface import HuggingFaceEmbeddings
+from openai import OpenAI
 
-embedding_model = HuggingFaceEmbeddings(
-    model_name="D:/github/RAG_self/model/bge-base-zh-v1.5",
-    model_kwargs={"device": "cpu"},
-    encode_kwargs={
-        "normalize_embeddings": True
-    },  # 输出归一化向量，更适合余弦相似度计算
-)
-# 加载已有向量库
-vectorstore = Chroma(
-    embedding_function=embedding_model,
-    persist_directory="D:/github/RAG_self/数据处理/vectorstore_rag",
+client = OpenAI(api_key="sk-fpcaglagjwvhtwfzkynhlmbsjqkfjwylzrtqcrntzqqqkcwg",
+                base_url="https://api.siliconflow.cn/v1")
+response = client.chat.completions.create(
+    # model='Pro/deepseek-ai/DeepSeek-R1',
+    model="Qwen/Qwen2.5-72B-Instruct",
+    messages=[
+        {'role': 'user', 
+        'content': "你好"}
+    ],
+    stream=True
 )
 
-query_text = "宣告该自然人死亡应该是怎么样子才行"
-print(vectorstore.similarity_search(query_text, k=3))
-# chroma_max_marginal_query(query_text, k=5)
-# chroma_retriever_query(query_text, k=5)
+for chunk in response:
+    if not chunk.choices:
+        continue
+    if chunk.choices[0].delta.content:
+        print(chunk.choices[0].delta.content, end="", flush=True)
+    if chunk.choices[0].delta.reasoning_content:
+        print(chunk.choices[0].delta.reasoning_content, end="", flush=True)

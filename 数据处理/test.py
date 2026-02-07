@@ -1,10 +1,10 @@
-from langchain_community.document_loaders import UnstructuredWordDocumentLoader
+# Please install OpenAI SDK first: `pip3 install openai`
+import os
+from openai import OpenAI
 
-from 数据处理.数据划分 import text_split
+client = OpenAI(
+    api_key='sk-8ff73cc60b3b4cc295924280890d2f12',
+    base_url="https://api.deepseek.com")
 
-word_documents = UnstructuredWordDocumentLoader(
-    "../knowledge_base/sample.docx",
-    mode="elements",
-    strategy="fast",
-).load()
-text_split(word_documents)
+response = client.invoke("你好，请介绍一下自己。")
+print(response.choices[0].message.content)
