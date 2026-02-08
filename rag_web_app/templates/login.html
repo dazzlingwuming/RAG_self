@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG 助手 - 登录</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <h1>🤖 RAG 智能助手</h1>
+            <p class="subtitle">基于检索增强的智能对话系统</p>
+
+            <form id="loginForm" action="/login" method="post">
+                <div class="form-group">
+                    <label for="username">用户名</label>
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        placeholder="请输入您的用户名"
+                        required
+                        autocomplete="off"
+                    >
+                    <small>这将作为您的会话ID，用于保存对话历史</small>
+                </div>
+
+                <button type="submit" class="btn-login">开始对话</button>
+            </form>
+
+            <div class="info-box">
+                <h3>📝 使用说明</h3>
+                <ul>
+                    <li>输入用户名进入对话界面</li>
+                    <li>您的对话历史将与用户名关联</li>
+                    <li>支持法律、技术等专业领域问答</li>
+                    <li>对话内容实时保存</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>对话界面 - {{ username }}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="chat-container">
+        <!-- 侧边栏 -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>🤖 RAG助手</h2>
+                <div class="user-info">
+                    <span>👤 {{ username }}</span>
+                </div>
+            </div>
+
+            <div class="sidebar-actions">
+                <button id="newChatBtn" class="btn-sidebar">
+                    🆕 新对话
+                </button>
+                <button id="clearBtn" class="btn-sidebar">
+                    🗑️ 清空历史
+                </button>
+                <button id="logoutBtn" class="btn-sidebar logout">
+                    👋 退出登录
+                </button>
+            </div>
+
+            <div class="history-list" id="historyList">
+                <!-- 历史对话列表会通过JS加载 -->
+            </div>
+        </div>
+
+        <!-- 主聊天区域 -->
+        <div class="main-content">
+            <div class="chat-header">
+                <h3>与 RAG 助手的对话</h3>
+                <div id="typingIndicator" class="typing-indicator" style="display: none;">
+                    <span>AI 正在思考...</span>
+                    <div class="dots">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="messages-container" id="messagesContainer">
+                <!-- 消息会通过JS动态添加 -->
+                <div class="welcome-message">
+                    <h3>👋 欢迎使用 RAG 智能助手！</h3>
+                    <p>我是基于检索增强生成技术的智能助手，可以回答各种专业问题。</p>
+                    <p>请在下方的输入框中提问，我会尽力为您解答。</p>
+                </div>
+            </div>
+
+            <div class="input-area">
+                <form id="chatForm">
+                    <div class="input-group">
+                        <input
+                            type="text"
+                            id="userInput"
+                            placeholder="输入您的问题..."
+                            autocomplete="off"
+                            autofocus
+                        >
+                        <button type="submit" class="btn-send">发送</button>
+                    </div>
+                    <div class="input-hint">
+                        例如：公司法第22条是怎么规定的？
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 传递模板变量到JS
+        const SESSION_ID = "{{ session_id }}";
+        const USERNAME = "{{ username }}";
+    </script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
