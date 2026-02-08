@@ -6,12 +6,16 @@ from datetime import datetime
 from langchain_core.documents import Document
 
 
-def format_docs(docs:list[Document]) -> str:
+def format_docs_queries(docs:list[Document]) -> str:
+    if isinstance(docs, str):
+        return docs
+    docs = sum(docs,[])# 如果 docs 是 list[list[Document]]，则取出内层的 list[Document]
+    return "\n\n".join(doc.page_content for doc in docs)
+
+def format_docs_query(docs:list[Document]) -> str:
     if isinstance(docs, str):
         return docs
     return "\n\n".join(doc.page_content for doc in docs)
-
-
 
 # 新增：记忆持久化功能（保存到JSON文件）
 def save_memory_to_file(memory, session_id="default_user", file_path="conversation_history.json"):
