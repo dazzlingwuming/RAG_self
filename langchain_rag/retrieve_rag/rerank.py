@@ -4,7 +4,7 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
 from torch import device
 import config.configRag as configRag
-from langchain_rag.langchain_base import get_llm, get_rerank_model, get_embedding_model, get_retriever, llm_chain
+from langchain_rag.langchain_base import get_llm, get_rerank_model, get_embedding_model, get_retriever, llm_chain_retrieve
 from untils.untils_rag import load_history_from_file, save_memory_to_file, build_history_from_llm_response_no_think
 
 
@@ -189,7 +189,7 @@ if __name__ == "__main__":
     #执行重排序
     rerank_results = rerank_langchain(inputs, llm, retriever, rerank_model, rerank_model_tokenizer, device, top_k=10,multi_query_num=5)
     print(rerank_results)
-    chain = llm_chain(llm)
+    chain = llm_chain_retrieve(llm)
     response = chain.invoke({"history": history, "query": query, "context": rerank_results})
     print(response)
     #保存历史记录
