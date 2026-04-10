@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hybrid Graph RAG</title>
+  <style>
+    :root {
+      --bg: #f3efe6;
+      --panel: rgba(255, 251, 244, 0.94);
+      --card: #fffaf1;
+      --line: #d7c9b0;
+      --text: #1e1f1b;
+      --muted: #65685f;
+      --accent: #8d5b2d;
+      --accent-2: #244c5a;
+      --shadow: 0 20px 60px rgba(71, 48, 23, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(141, 91, 45, 0.16), transparent 30%),
+        radial-gradient(circle at top right, rgba(36, 76, 90, 0.18), transparent 28%),
+        linear-gradient(180deg, #f6f1e7 0%, var(--bg) 100%);
+      font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    }
+
+    .page {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 36px 20px 60px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.3fr 0.9fr;
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    .hero-main,
+    .hero-side,
+    .panel,
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .hero-main {
+      padding: 28px;
+    }
+
+    .hero-side {
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      justify-content: space-between;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 40px;
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+    }
+
+    .sub {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.7;
+      max-width: 760px;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .badge {
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(141, 91, 45, 0.2);
+      background: rgba(141, 91, 45, 0.08);
+      color: #6a4521;
+      font-size: 13px;
+    }
+
+    .meta {
+      display: grid;
+      gap: 10px;
+    }
+
+    .meta-item {
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.68);
+      border: 1px solid rgba(36, 76, 90, 0.12);
+    }
+
+    .meta-label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .meta-value {
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .panel {
+      padding: 22px;
+      margin-bottom: 20px;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: #fffdf8;
+      padding: 14px 16px;
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
+      transition: border-color .18s ease, box-shadow .18s ease;
+    }
+
+    input:focus,
+    textarea:focus {
+      border-color: rgba(36, 76, 90, 0.45);
+      box-shadow: 0 0 0 4px rgba(36, 76, 90, 0.08);
+    }
+
+    textarea {
+      min-height: 138px;
+      resize: vertical;
+      margin-bottom: 16px;
+      line-height: 1.7;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 13px 22px;
+      font-size: 15px;
+      font-weight: 700;
+      color: white;
+      background: linear-gradient(135deg, var(--accent), #a66d34);
+      cursor: pointer;
+      transition: transform .15s ease, box-shadow .15s ease;
+      box-shadow: 0 10px 24px rgba(141, 91, 45, 0.24);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 18px;
+    }
+
+    .answer-box {
+      padding: 20px;
+      min-height: 220px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: linear-gradient(180deg, rgba(255,255,255,0.82), rgba(253,249,241,0.95));
+    }
+
+    .section-title {
+      margin: 0 0 14px;
+      font-size: 18px;
+    }
+
+    .stack {
+      display: grid;
+      gap: 14px;
+    }
+
+    .card {
+      padding: 18px;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .card-title {
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .pill {
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(36, 76, 90, 0.16);
+      color: var(--accent-2);
+      background: rgba(36, 76, 90, 0.08);
+    }
+
+    .evidence-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .evidence-item {
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(215, 201, 176, 0.85);
+    }
+
+    .evidence-meta {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 7px;
+    }
+
+    .evidence-body {
+      font-size: 14px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 14px;
+      padding: 6px 0;
+    }
+
+    @media (max-width: 960px) {
+      .hero,
+      .grid,
+      .controls {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <div class="hero-main">
+        <h1>Hybrid Graph RAG</h1>
+        <p class="sub">独立目录版知识问答系统。图谱关系和文档片段分开检索，再按问题类型做轻量路由，避免所有问题都用同一种方式硬答。</p>
+        <div class="badge-row">
+          <span class="badge">Neo4j 图谱</span>
+          <span class="badge">文档 FTS 检索</span>
+          <span class="badge">问句路由</span>
+          <span class="badge">独立运行</span>
+        </div>
+      </div>
+      <aside class="hero-side">
+        <div class="meta">
+          <div class="meta-item">
+            <span class="meta-label">Graph Endpoint</span>
+            <div class="meta-value" id="graph-endpoint">neo4j@127.0.0.1:8687</div>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Vector Backend</span>
+            <div class="meta-value" id="vector-backend">loading</div>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Route Mode</span>
+            <div class="meta-value" id="route-mode">waiting</div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="panel">
+      <div class="controls">
+        <div>
+          <label for="session">Session ID</label>
+          <input id="session" placeholder="session_id" value="demo-user">
+        </div>
+        <div>
+          <label for="query">问题</label>
+          <input id="query" placeholder="例如：夏朝的外文名是什么">
+        </div>
+      </div>
+      <textarea id="query-long" placeholder="也可以在这里输入更长的问题，比如：孙子曰讲的是什么"></textarea>
+      <div class="actions">
+        <button onclick="ask()">开始检索</button>
+        <div class="hint" id="status-text">等待提问</div>
+      </div>
+    </section>
+
+    <section class="grid">
+      <div class="stack">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">回答</div>
+            <span class="pill" id="route-summary">route=pending</span>
+          </div>
+          <div class="answer-box" id="answer">还没有回答。</div>
+        </div>
+      </div>
+
+      <div class="stack">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">图谱证据</div>
+            <span class="pill" id="graph-count">0 条</span>
+          </div>
+          <div class="evidence-list" id="graph-list"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">文档证据</div>
+            <span class="pill" id="vector-count">0 条</span>
+          </div>
+          <div class="evidence-list" id="vector-list"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    function preferredQuery() {
+      const shortQuery = document.getElementById("query").value.trim();
+      const longQuery = document.getElementById("query-long").value.trim();
+      return longQuery || shortQuery;
+    }
+
+    function escapeHtml(text) {
+      return String(text ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+    }
+
+    function renderGraph(items) {
+      const root = document.getElementById("graph-list");
+      document.getElementById("graph-count").textContent = `${items.length} 条`;
+      if (!items.length) {
+        root.innerHTML = `<div class="empty">没有命中图谱关系。</div>`;
+        return;
+      }
+
+      root.innerHTML = items.map((item) => `
+        <div class="evidence-item">
+          <div class="evidence-meta">score=${item.score ?? "-"} · keyword=${escapeHtml(item.keyword || "-")}</div>
+          <div class="evidence-body">${escapeHtml(item.source_name || "未知实体")} -[${escapeHtml(item.rel_type || "相关")}]- ${escapeHtml(item.target_name || "未知值")}</div>
+        </div>
+      `).join("");
+    }
+
+    function renderVector(items) {
+      const root = document.getElementById("vector-list");
+      document.getElementById("vector-count").textContent = `${items.length} 条`;
+      if (!items.length) {
+        root.innerHTML = `<div class="empty">没有命中文档片段。</div>`;
+        return;
+      }
+
+      root.innerHTML = items.map((item) => `
+        <div class="evidence-item">
+          <div class="evidence-meta">mode=${escapeHtml(item.retrieval_mode || "-")} · source=${escapeHtml(item.metadata?.source || "unknown")}</div>
+          <div class="evidence-body">${escapeHtml(item.content || "")}</div>
+        </div>
+      `).join("");
+    }
+
+    async function loadHealth() {
+      try {
+        const resp = await fetch("/api/health");
+        const data = await resp.json();
+        document.getElementById("graph-endpoint").textContent = data.graph_endpoint || "-";
+        document.getElementById("vector-backend").textContent = data.vector_backend || "-";
+      } catch {
+        document.getElementById("vector-backend").textContent = "unavailable";
+      }
+    }
+
+    async function ask() {
+      const query = preferredQuery();
+      if (!query) {
+        document.getElementById("status-text").textContent = "请输入问题";
+        return;
+      }
+
+      document.getElementById("status-text").textContent = "检索中...";
+      document.getElementById("answer").textContent = "正在生成回答...";
+
+      const form = new FormData();
+      form.append("session_id", document.getElementById("session").value);
+      form.append("query", query);
+
+      const resp = await fetch("/api/chat", { method: "POST", body: form });
+      const data = await resp.json();
+
+      document.getElementById("answer").textContent = data.answer || "";
+      document.getElementById("vector-backend").textContent = data.vector_backend || "-";
+      document.getElementById("route-mode").textContent = data.route?.mode || "-";
+      document.getElementById("route-summary").textContent = data.route?.summary || "route=unknown";
+      document.getElementById("status-text").textContent = "完成";
+
+      renderGraph(data.graph_results || []);
+      renderVector(data.vector_results || []);
+    }
+
+    loadHealth();
+  </script>
+</body>
+</html>
