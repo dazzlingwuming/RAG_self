@@ -18,6 +18,7 @@
     }
 
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
       color: var(--text);
@@ -208,11 +209,6 @@
       background: linear-gradient(180deg, rgba(255,255,255,0.82), rgba(253,249,241,0.95));
     }
 
-    .section-title {
-      margin: 0 0 14px;
-      font-size: 18px;
-    }
-
     .stack {
       display: grid;
       gap: 14px;
@@ -297,7 +293,7 @@
         <div class="badge-row">
           <span class="badge">Neo4j 图谱</span>
           <span class="badge">文档 FTS 检索</span>
-          <span class="badge">问句路由</span>
+          <span class="badge">问题路由</span>
           <span class="badge">独立运行</span>
         </div>
       </div>
@@ -369,12 +365,14 @@
   </div>
 
   <script>
+    // 这里优先取长文本输入框的内容，长问题不需要再复制到短输入框里。
     function preferredQuery() {
       const shortQuery = document.getElementById("query").value.trim();
       const longQuery = document.getElementById("query-long").value.trim();
       return longQuery || shortQuery;
     }
 
+    // 这里先做最基础的转义，避免直接把检索结果拼进 innerHTML 时把页面结构打坏。
     function escapeHtml(text) {
       return String(text ?? "")
         .replaceAll("&", "&amp;")
@@ -382,6 +380,7 @@
         .replaceAll(">", "&gt;");
     }
 
+    // 图谱证据单独渲染成一列，方便直接看关系和关系类型。
     function renderGraph(items) {
       const root = document.getElementById("graph-list");
       document.getElementById("graph-count").textContent = `${items.length} 条`;
@@ -398,6 +397,7 @@
       `).join("");
     }
 
+    // 文档证据单独渲染成一列，方便看来源文件和片段正文。
     function renderVector(items) {
       const root = document.getElementById("vector-list");
       document.getElementById("vector-count").textContent = `${items.length} 条`;
@@ -414,6 +414,7 @@
       `).join("");
     }
 
+    // 页面加载后先探测一次后端状态，把当前运行模式显示出来。
     async function loadHealth() {
       try {
         const resp = await fetch("/api/health");

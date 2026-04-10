@@ -1,6 +1,8 @@
 from pathlib import Path
 
 
+# 这里统一放整个子项目用到的路径和常量配置。
+# 后面如果目录结构变化，只需要改这一处。
 APP_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = APP_DIR.parent
 
@@ -13,6 +15,7 @@ EMBEDDING_MODEL_PATH = MODEL_DIR / "bge-base-zh-v1.5"
 VECTORSTORE_DIR = PROJECT_ROOT / "vectorstore_rag"
 
 DATA_DIR = APP_DIR / "data"
+# 这里提前创建 data 目录，避免后面写会话历史时因为目录不存在报错。
 DATA_DIR.mkdir(exist_ok=True)
 HISTORY_PATH = DATA_DIR / "conversation_history.json"
 
@@ -29,7 +32,7 @@ NEO4J_HTTP_URL = "http://127.0.0.1:8474"
 NEO4J_START_SCRIPT = NEO4J_HOME / "start_kg_db.bat"
 NEO4J_STOP_SCRIPT = NEO4J_HOME / "stop_kg_db.bat"
 
+# 这些常量用来控制检索规模，避免一次取回太多结果把上下文塞满。
 VECTOR_TOP_K = 6
 GRAPH_KEYWORD_LIMIT = 3
 GRAPH_RESULT_LIMIT = 8
-

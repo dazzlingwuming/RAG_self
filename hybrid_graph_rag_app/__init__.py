@@ -1,1 +1,6 @@
-# Standalone hybrid graph RAG application package.
+"""
+这里是独立的 hybrid graph rag 子应用包。
+
+这个目录下单独放图谱检索、文档检索、对话历史和前端页面，
+这样混合问答逻辑可以和原项目主入口分开维护。
+"""

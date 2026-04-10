@@ -14,6 +14,7 @@ class GraphRetriever:
 
     def _run_query(self, statement: str, parameters: dict[str, Any]) -> list[dict]:
         last_error = None
+        # 这里给图谱请求留一次重试机会，主要是为了应对本地 Neo4j 偶发连接抖动。
         for _ in range(2):
             try:
                 self.runtime.ensure_started()
@@ -37,7 +38,8 @@ class GraphRetriever:
 
     @staticmethod
     def extract_keywords(query: str) -> list[str]:
-        normalized = re.sub(r"[，。！？、,.!?;；:：\"'“”‘’（）()\[\]【】\s]+", " ", query).strip()
+        # 这里先把问句里的常见标点和口语尾词清掉，尽量保留实体和关系词。
+        normalized = re.sub(r"[，。！？、,.!?;:：\"'“”‘’（）()\[\]【】\s]+", " ", query).strip()
         stop_phrases = [
             "是什么",
             "是啥",
@@ -60,6 +62,7 @@ class GraphRetriever:
             normalized = normalized.replace(phrase, " ")
 
         pieces = re.findall(r"[\u4e00-\u9fffA-Za-z0-9]{2,}", normalized)
+        # “X的Y是什么” 这类问句里，按 “的” 再拆一层，更容易拿到核心实体。
         for part in normalized.split("的"):
             part = part.strip()
             if len(part) >= 2:
@@ -77,6 +80,9 @@ class GraphRetriever:
         if not keywords:
             return []
 
+        # 这里的打分不是严格的召回模型，而是一个轻量排序规则：
+        # 实体完全命中优先，其次是包含命中，再其次才是简介字段命中。
+        # 如果问题里直接出现了关系名，比如“外文名”，也额外加分。
         statement = """
         MATCH (n)-[r]->(m)
         WITH
@@ -117,6 +123,7 @@ class GraphRetriever:
                 statement,
                 {"keyword": keyword, "query_text": query, "limit": settings.GRAPH_RESULT_LIMIT},
             )
+            # 多个关键词会查出重复边，这里做一次去重，避免前端和 prompt 里出现重复证据。
             for row in rows:
                 row_key = str(row)
                 if row_key not in seen:
@@ -128,6 +135,7 @@ class GraphRetriever:
 
     @staticmethod
     def format_for_prompt(results: list[dict]) -> str:
+        # 这里把结构化图谱结果转成紧凑文本，方便直接放进 prompt。
         if not results:
             return "未检索到图谱关系。"
 

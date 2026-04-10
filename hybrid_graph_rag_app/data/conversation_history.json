@@ -462,5 +462,17 @@
       "content": "1. 核心回答：根据对话历史，您刚才提出的问题是：“孙子说的驰车千驷，革车千乘，带甲十万是什么意思”。\n\n2. 依据说明：主要依据来自对话历史记录。当前的文档知识库和图谱事实均未包含与本次用户问题直接相关的内容。\n\n3. 关键证据：\n   * 对话历史中，您的最新一条用户消息是：“孙子说的驰车千驷，革车千乘，带甲十万是什么意思”。\n   * 紧接着的上一条助手回答，正是针对该问题的解答。",
       "time": "2026-04-10 14:08:36"
     }
+  ],
+  "comment-check": [
+    {
+      "type": "human",
+      "content": "夏朝的外文名是什么",
+      "time": "2026-04-10 14:44:09"
+    },
+    {
+      "type": "ai",
+      "content": "1. 核心回答：根据图谱检索，较相关的结果是：夏朝 -[外文名]- The Xia Dynasty。\n2. 依据说明：当前回答主要依据 Neo4j 图谱结果生成，路由模式为 graph_first。\n3. 关键证据：\n- 图谱：夏朝 -[外文名]- The Xia Dynasty\n- 图谱：夏朝文字 -[外文名]- Xia dynasty ancient writing\n- 图谱：夏朝君主 -[外文名]- xia chao jun zhu\n- 图谱：三氧化钨 -[外文名]- 外文名tungsten trioxideTungsten(VI) oxideC.I. 77901; Tungsten trioxideTungstenoxidePURATREMyellowpowderTungstenoxidesinteredlumpsyellowgreenpiecesTungstenoxideyellowgreenpowderTungstenoxidetrioxotungsten收起",
+      "time": "2026-04-10 14:44:09"
+    }
   ]
 }

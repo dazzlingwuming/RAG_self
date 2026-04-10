@@ -10,6 +10,7 @@ from hybrid_graph_rag_app.vector_retriever import VectorRetriever
 
 
 class HybridGraphRAGService:
+    # 这里放一组轻量规则词，用来把问题初步分流到图谱优先还是文档优先。
     GRAPH_HINTS = (
         "关系",
         "简称",
@@ -47,6 +48,7 @@ class HybridGraphRAGService:
         self.vector_enabled = self.vector_retriever.backend != "disabled"
         self.neo4j_runtime = Neo4jRuntime()
         self.graph_retriever = GraphRetriever(self.neo4j_runtime)
+        # 这里的 prompt 明确要求回答只能建立在检索证据上，避免无依据扩写。
         self.prompt = PromptTemplate.from_template(
             """你是一个中文知识问答助手。
 请基于下面两类上下文回答问题：
@@ -54,12 +56,9 @@ class HybridGraphRAGService:
 2. Neo4j 图谱事实
 
 如果上下文不足以支撑结论，明确说明“知识库和图谱中没有足够依据”，不要编造。
+问题路由建议：{route_summary}
 
-问题路由建议：
-{route_summary}
-
-对话历史：
-{history}
+对话历史：{history}
 
 文档知识库：
 {vector_context}
@@ -67,8 +66,7 @@ class HybridGraphRAGService:
 图谱事实：
 {graph_context}
 
-用户问题：
-{query}
+用户问题：{query}
 
 请按这个格式作答：
 1. 核心回答：直接回答问题
@@ -88,6 +86,8 @@ class HybridGraphRAGService:
             if hint in query:
                 doc_score += 2
 
+        # 这里用问题长度做一个很轻的辅助判断：
+        # 短问题更像实体属性查询，长问题更像解释型文档问题。
         if len(query) <= 10:
             graph_score += 1
         if len(query) >= 14:
@@ -118,6 +118,8 @@ class HybridGraphRAGService:
         evidence: list[str] = []
         graph_score = HybridGraphRAGService._graph_priority(graph_results)
 
+        # 这里是无 LLM 或 LLM 调用失败时的降级回答逻辑。
+        # 核心目标不是追求漂亮回答，而是尽量基于已有证据给出保守结论。
         if route["mode"] == "graph_first":
             use_graph = bool(graph_results)
             use_vector = bool(vector_results[:1]) and graph_score < 100
@@ -157,7 +159,7 @@ class HybridGraphRAGService:
             )
         else:
             core = f"针对问题“{query}”，当前没有检索到足够的图谱或文档依据。"
-            basis = "当前环境下未获得可用的外部大模型响应，因此只能返回基于检索结果的保守结论。"
+            basis = "当前环境下未获得可用的外部大模型响应，因此这里只返回基于检索结果的保守结论。"
 
         if not evidence:
             evidence.append("- 未检索到足够证据")
@@ -172,9 +174,10 @@ class HybridGraphRAGService:
         )
 
     def ask(self, query: str, session_id: str) -> dict:
-        history = load_history(settings.HISTORY_PATH, session_id=session_id, turns=8)
+        history = load_history(path=settings.HISTORY_PATH, session_id=session_id, turns=8)
         route = self.route_query(query)
 
+        # 这里把两路检索都包在 try 里，目的是任何一路出问题都不拖垮整次问答。
         try:
             vector_results = self.vector_retriever.search(query)
         except Exception:
@@ -184,6 +187,7 @@ class HybridGraphRAGService:
         except Exception:
             graph_results = []
 
+        # 路由不是决定“只查谁”，而是决定“谁优先保留更多结果”。
         if route["mode"] == "graph_first":
             graph_results = graph_results[:8]
             vector_results = vector_results[:3]
@@ -207,7 +211,7 @@ class HybridGraphRAGService:
         except Exception:
             answer = self._fallback_answer(query, route, graph_results, vector_results)
 
-        save_turn(settings.HISTORY_PATH, session_id=session_id, query=query, answer=answer)
+        save_turn(path=settings.HISTORY_PATH, session_id=session_id, query=query, answer=answer)
         return {
             "answer": answer,
             "route": route,

@@ -12,6 +12,7 @@ class VectorRetriever:
         self.backend = "disabled"
         self.sqlite_path = settings.VECTORSTORE_DIR / "chroma.sqlite3"
 
+        # embedding 模型可用时，优先走真正的语义检索。
         if embedding_model is not None:
             try:
                 self.vectorstore = Chroma(
@@ -22,6 +23,7 @@ class VectorRetriever:
             except Exception:
                 self.vectorstore = None
 
+        # 当前环境里 embedding 依赖可能有问题，这里保留 FTS 作为后备模式。
         if self.backend == "disabled" and self.sqlite_path.exists():
             self.backend = "fts"
 
@@ -52,6 +54,8 @@ class VectorRetriever:
         if not terms:
             return []
 
+        # 这里直接从 Chroma 的 sqlite 文件里做全文检索，
+        # 目的是在语义检索不可用时，仍然能把文档片段取出来。
         sql = """
         SELECT
             fts.rowid AS chunk_id,
@@ -90,6 +94,7 @@ class VectorRetriever:
 
     @staticmethod
     def _candidate_terms(query: str) -> list[str]:
+        # FTS 对特别短的中文问句不够敏感，这里额外切 3 字滑窗，提升命中率。
         cleaned = " ".join(query.split()).strip()
         if not cleaned:
             return []
@@ -118,6 +123,7 @@ class VectorRetriever:
 
     @staticmethod
     def format_for_prompt(results: list[dict]) -> str:
+        # 这里同样把结构化结果压平成 prompt 友好的文本块。
         if not results:
             return "未检索到文档知识库内容。"
 
