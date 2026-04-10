@@ -4,7 +4,8 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_core.prompts import PromptTemplate
 from torch import device
 import config.configRag as configRag
-from langchain_rag.langchain_base import get_llm, get_rerank_model, get_embedding_model, get_retriever, llm_chain_retrieve
+from langchain_rag.langchain_base import get_llm, get_rerank_model, get_embedding_model, get_retriever, \
+    llm_chain_retrieve, answer_verification
 from untils.untils_rag import load_history_from_file, save_memory_to_file, build_history_from_llm_response_no_think
 
 
@@ -192,6 +193,10 @@ if __name__ == "__main__":
     chain = llm_chain_retrieve(llm)
     response = chain.invoke({"history": history, "query": query, "context": rerank_results})
     print(response)
+    #回答校验
+    chain = answer_verification(llm)
+    answer_verification_this = chain.invoke({"history": history, "query": query, "context": rerank_results,"answer": response})
+    print(f"回答校验结果：{answer_verification_this}")
     #保存历史记录
     new_Dialogue = build_history_from_llm_response_no_think(query, response)
     save_memory_to_file(session_id=session_id, memory=new_Dialogue,file_path=configRag.history_path)

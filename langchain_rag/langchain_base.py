@@ -77,7 +77,7 @@ def llm_chain_retrieve(llm):
     #提示词
     prompt = PromptTemplate.from_template(
             '''你是一个专业的中文问答助手，擅长基于提供的资料回答问题。
-    请仅根据以下背景资料以及历史消息回答问题，如无法找到答案，请直接回答“我不知道”。
+    请仅根据以下背景资料以及历史消息回答问题，如无法找到答案，请直接回答“未在知识库里面找到相应内容，以下回答是基于自身理解回答”。
     
     背景资料：{context}
     
@@ -85,7 +85,10 @@ def llm_chain_retrieve(llm):
     
     问题：{query}
     
-    回答：''',
+    请按照以下格式回答：
+    1. 核心回答：[针对用户问题的精准回答，语言简洁明了]
+    2. 引用来源：[列出回答所依据的背景资料或者历史记录中最关键片段内容”]
+''',
 
     )
 
@@ -104,6 +107,42 @@ def llm_chain_retrieve(llm):
 
     return rag_chain
 
+
+def answer_verification(llm):
+    """
+    答案验证链,看大模型是不是根据提供的背景资料和历史消息正确回答问题
+    :param inputs: 包含 "context"（背景资料）-->list[Document]、"history"（历史消息）和 "query"（问题）的输入字典
+    :param llm: 大模型实例
+    :return: 大模型的回答字符串
+    """
+    #提示词
+    prompt = PromptTemplate.from_template(
+            '''你是一个专业的检测助手，擅长根据提供的资料判断问题的答案是否是依据提供的背景资料和历史消息正确回答问题的。如果他的回答明确是"未在知识库里面找到相应内容，以下回答是基于自身理解回答"
+            则可以忽略。
+            背景资料：{context}
+            历史消息：[{history}]
+            问题：{query}
+            回答：{answer}
+            请判断这个回答是否是根据提供的背景资料和历史消息正确回答问题的，如果是请直接回答"正确"，如果不是请直接回答"错误"。
+            ''')
+    # 定义 RAG 链条
+    rag_chain = (
+            {
+                "context": lambda x: format_docs_queries(x.get("context")),
+                "history": lambda x: x.get("history"),
+                "query": lambda x: x.get("query"),
+                "answer": lambda x: x.get("answer"),
+            }
+            | prompt
+            | (lambda x: print(x.text, end="") or x)
+            | llm
+            | StrOutputParser()  # 输出解析器，将输出解析为字符串
+    )
+
+    return rag_chain
+
+
+    
 
 # 基础问答
 def llm_chain_unretrieve(llm):
