@@ -1,0 +1,7 @@
+{"id":"mem_policy_001","type":"usage_policy","query":"继续按照我之前说的简历风格优化这个项目介绍","expected_use_memory":true,"expected_memory_types":["short_term","summary","long_term"]}
+{"id":"mem_policy_002","type":"usage_policy","query":"不要用记忆，夏朝的外文名是什么","expected_use_memory":false,"expected_memory_types":[]}
+{"id":"mem_policy_003","type":"usage_policy","query":"夏朝的外文名是什么","expected_use_memory":false,"expected_memory_types":[]}
+{"id":"mem_policy_004","type":"usage_policy","query":"这个怎么继续优化","expected_use_memory":true,"expected_memory_types":["short_term","summary"]}
+{"id":"mem_write_001","type":"write_gate","query":"以后写项目介绍时请使用适合 HR 和面试官看的简历风格，不要写成修改日志","expected_written":true,"expected_category":"preference"}
+{"id":"mem_write_002","type":"write_gate","query":"夏朝的外文名是什么","expected_written":false,"expected_category":null}
+{"id":"mem_recall_001","type":"recall","seed_query":"我希望项目说明面向 HR，突出工程能力和可信问答价值","recall_query":"继续按我的项目说明风格写一版","expected_recall_keyword":"HR"}

@@ -3,6 +3,7 @@ import sqlite3
 from langchain_chroma import Chroma
 
 from hybrid_graph_rag_app import settings
+from hybrid_graph_rag_app.schemas import Evidence
 
 
 class VectorRetriever:
@@ -122,17 +123,41 @@ class VectorRetriever:
         return unique[: max(settings.VECTOR_TOP_K, 6)]
 
     @staticmethod
-    def format_for_prompt(results: list[dict]) -> str:
-        # 这里同样把结构化结果压平成 prompt 友好的文本块。
+    def to_evidence(results: list[dict]) -> list[Evidence]:
+        evidence: list[Evidence] = []
+        for idx, item in enumerate(results, start=1):
+            meta = item.get("metadata", {}) or {}
+            source = str(meta.get("source", "unknown"))
+            chunk_id = meta.get("chunk_id") or meta.get("id") or idx
+            evidence.append(
+                Evidence(
+                    evidence_id=f"S{idx}",
+                    type="document",
+                    content=item.get("content", ""),
+                    source=source,
+                    score=item.get("score"),
+                    metadata={
+                        **meta,
+                        "chunk_id": chunk_id,
+                        "retrieval_mode": item.get("retrieval_mode", "unknown"),
+                    },
+                )
+            )
+        return evidence
+
+    @staticmethod
+    def format_evidence_for_prompt(results: list[Evidence]) -> str:
         if not results:
             return "未检索到文档知识库内容。"
 
         blocks = []
-        for idx, item in enumerate(results, start=1):
-            meta = item.get("metadata", {})
-            source = meta.get("source", "unknown")
-            mode = item.get("retrieval_mode", "unknown")
-            score = item.get("score")
-            score_text = "" if score is None else f" score={score:.4f}"
-            blocks.append(f"[文档片段{idx}] mode={mode} source={source}{score_text}\n{item['content']}")
+        for item in results:
+            mode = item.metadata.get("retrieval_mode", "unknown")
+            score_text = "" if item.score is None else f" score={item.score:.4f}"
+            blocks.append(f"[{item.evidence_id}] 文档片段 mode={mode} source={item.source}{score_text}\n{item.content}")
         return "\n\n".join(blocks)
+
+    @staticmethod
+    def format_for_prompt(results: list[dict]) -> str:
+        # 这里同样把结构化结果压平成 prompt 友好的文本块。
+        return VectorRetriever.format_evidence_for_prompt(VectorRetriever.to_evidence(results))

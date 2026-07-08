@@ -1,0 +1,7 @@
+{"id":"q1","type":"graph","query":"夏朝的外文名是什么？","expected_behavior":"命中图谱或文档证据，并使用证据编号回答","expected_status":"verified"}
+{"id":"q2","type":"document","query":"孙子曰这部分内容主要讲了什么？","expected_behavior":"优先使用文档证据总结，并带引用","expected_status":"verified"}
+{"id":"q3","type":"hybrid","query":"请结合文档和图谱说明一个相关实体的基本信息。","expected_behavior":"采用混合检索，尽量同时返回文档和图谱证据","expected_status":"verified"}
+{"id":"q4","type":"no_answer","query":"这个知识库里有没有关于火星殖民计划预算的说明？","expected_behavior":"证据不足时拒答","expected_status":"refused"}
+{"id":"q5","type":"ambiguous","query":"它的作者是谁？","expected_behavior":"利用历史有限补全；如果证据不足则拒答"}
+{"id":"q6","type":"keyword","query":"外文名","expected_behavior":"短关键词问题应优先尝试图谱或关键词检索"}
+{"id":"q7","type":"summary","query":"请总结当前知识库中最相关文档片段的主要观点。","expected_behavior":"使用文档证据进行总结，并带引用"}

@@ -1,0 +1,44 @@
+# Python generated files
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE/editor
+.idea/
+.vscode/
+
+# Secrets and local config
+.env
+config/.env
+*.local
+
+# Local model/vector/graph artifacts
+model/
+vectorstore_rag/
+neo4j_kg_db/
+
+# Runtime data
+hybrid_graph_rag_app/data/conversation_history.json
+hybrid_graph_rag_app/data/session_summaries.json
+hybrid_graph_rag_app/data/long_term_memory.json
+eval/eval_report.jsonl
+eval/eval_summary.json
+eval/eval_memory_report.jsonl
+eval/eval_memory_summary.json
+
+# Generated data artifacts
+*.pkl
+*.sqlite3
+*.db
+
+# OS files
+.DS_Store
+Thumbs.db

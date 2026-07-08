@@ -1,0 +1,17 @@
+fastapi
+uvicorn
+python-multipart
+jinja2
+python-dotenv
+requests
+langchain-core
+langchain-openai
+langchain-chroma
+langchain-huggingface
+chromadb
+sentence-transformers
+torch
+pytest
+# Optional evaluation dependencies:
+# ragas
+# datasets

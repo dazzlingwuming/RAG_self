@@ -311,6 +311,14 @@
             <span class="meta-label">Route Mode</span>
             <div class="meta-value" id="route-mode">waiting</div>
           </div>
+          <div class="meta-item">
+            <span class="meta-label">Trust Status</span>
+            <div class="meta-value" id="trust-status">waiting</div>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Confidence</span>
+            <div class="meta-value" id="confidence">-</div>
+          </div>
         </div>
       </aside>
     </section>
@@ -341,6 +349,34 @@
             <span class="pill" id="route-summary">route=pending</span>
           </div>
           <div class="answer-box" id="answer">还没有回答。</div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">可信校验</div>
+            <span class="pill" id="verification-status">pending</span>
+          </div>
+          <div class="evidence-list" id="verification-box">
+            <div class="empty">等待回答后显示校验结果。</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">记忆使用</div>
+            <span class="pill" id="memory-status">pending</span>
+          </div>
+          <div class="evidence-list" id="memory-box">
+            <div class="empty">等待回答后显示记忆决策。</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">引用来源</div>
+            <span class="pill" id="source-count">0 条</span>
+          </div>
+          <div class="evidence-list" id="source-list"></div>
         </div>
       </div>
 
@@ -414,6 +450,78 @@
       `).join("");
     }
 
+    function renderVerification(data) {
+      const verification = data.verification || {};
+      const status = data.status || verification.status || "unknown";
+      const confidence = Number(data.confidence ?? verification.confidence ?? 0);
+      document.getElementById("trust-status").textContent = status;
+      document.getElementById("confidence").textContent = Number.isFinite(confidence) ? confidence.toFixed(2) : "-";
+      document.getElementById("verification-status").textContent = status;
+      document.getElementById("verification-box").innerHTML = `
+        <div class="evidence-item">
+          <div class="evidence-meta">supported=${verification.supported ?? "-"} · confidence=${Number.isFinite(confidence) ? confidence.toFixed(2) : "-"}</div>
+          <div class="evidence-body">${escapeHtml(verification.reason || "暂无校验说明。")}</div>
+        </div>
+        ${(verification.unsupported_claims || []).map((claim) => `
+          <div class="evidence-item">
+            <div class="evidence-meta">unsupported claim</div>
+            <div class="evidence-body">${escapeHtml(claim)}</div>
+          </div>
+        `).join("")}
+      `;
+    }
+
+    function renderSources(items) {
+      const root = document.getElementById("source-list");
+      document.getElementById("source-count").textContent = `${items.length} 条`;
+      if (!items.length) {
+        root.innerHTML = `<div class="empty">没有可展示的引用来源。</div>`;
+        return;
+      }
+
+      root.innerHTML = items.map((item) => `
+        <div class="evidence-item">
+          <div class="evidence-meta">[${escapeHtml(item.evidence_id)}] ${escapeHtml(item.type)} · source=${escapeHtml(item.source)} · score=${escapeHtml(item.score ?? "-")}</div>
+          <div class="evidence-body">${escapeHtml(item.content || "")}</div>
+        </div>
+      `).join("");
+    }
+
+    function renderMemory(data) {
+      const usage = data.memory_usage || {};
+      const memories = data.used_memories || [];
+      const write = data.memory_write_result || {};
+      const root = document.getElementById("memory-box");
+      const status = usage.use_memory ? "enabled" : "skipped";
+      document.getElementById("memory-status").textContent = status;
+
+      const memoryTypes = (usage.memory_types || []).length ? usage.memory_types.join(", ") : "none";
+      const writeText = write.written
+        ? `written=${escapeHtml(write.memory_id || "-")} · ${escapeHtml(write.reason || "")}`
+        : `skipped · ${escapeHtml(write.skipped_reason || write.reason || "本轮未写入长期记忆。")}`;
+
+      const memoryItems = memories.length
+        ? memories.map((item) => `
+          <div class="evidence-item">
+            <div class="evidence-meta">${escapeHtml(item.memory_id)} · ${escapeHtml(item.category)} · confidence=${escapeHtml(item.confidence ?? "-")} · score=${escapeHtml(item.score ?? "-")}</div>
+            <div class="evidence-body">${escapeHtml(item.content || "")}</div>
+          </div>
+        `).join("")
+        : `<div class="evidence-item"><div class="evidence-meta">长期记忆召回</div><div class="evidence-body">本轮没有召回长期记忆。</div></div>`;
+
+      root.innerHTML = `
+        <div class="evidence-item">
+          <div class="evidence-meta">use_memory=${usage.use_memory ?? false} · types=${escapeHtml(memoryTypes)} · risk=${escapeHtml(usage.risk_level || "-")}</div>
+          <div class="evidence-body">${escapeHtml(usage.reason || "暂无记忆使用说明。")}</div>
+        </div>
+        <div class="evidence-item">
+          <div class="evidence-meta">长期记忆写入</div>
+          <div class="evidence-body">${writeText}</div>
+        </div>
+        ${memoryItems}
+      `;
+    }
+
     // 页面加载后先探测一次后端状态，把当前运行模式显示出来。
     async function loadHealth() {
       try {
@@ -449,6 +557,9 @@
       document.getElementById("route-summary").textContent = data.route?.summary || "route=unknown";
       document.getElementById("status-text").textContent = "完成";
 
+      renderVerification(data);
+      renderMemory(data);
+      renderSources(data.sources || []);
       renderGraph(data.graph_results || []);
       renderVector(data.vector_results || []);
     }

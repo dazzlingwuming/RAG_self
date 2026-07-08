@@ -6,6 +6,7 @@ import requests
 
 from hybrid_graph_rag_app import settings
 from hybrid_graph_rag_app.neo4j_runtime import Neo4jRuntime
+from hybrid_graph_rag_app.schemas import Evidence
 
 
 class GraphRetriever:
@@ -134,17 +135,44 @@ class GraphRetriever:
         return merged
 
     @staticmethod
-    def format_for_prompt(results: list[dict]) -> str:
-        # 这里把结构化图谱结果转成紧凑文本，方便直接放进 prompt。
+    def to_evidence(results: list[dict]) -> list[Evidence]:
+        evidence: list[Evidence] = []
+        for idx, item in enumerate(results, start=1):
+            source_name = item.get("source_name") or "未知实体"
+            rel_type = item.get("rel_type") or "相关"
+            target_name = item.get("target_name") or "未知值"
+            content = f"{source_name} -[{rel_type}]- {target_name}"
+            evidence.append(
+                Evidence(
+                    evidence_id=f"G{idx}",
+                    type="graph",
+                    content=content,
+                    source=f"Neo4j:{source_name}",
+                    score=item.get("score"),
+                    metadata={
+                        "source_name": source_name,
+                        "source_profile": item.get("source_profile"),
+                        "rel_type": rel_type,
+                        "target_name": target_name,
+                        "target_profile": item.get("target_profile"),
+                        "keyword": item.get("keyword"),
+                    },
+                )
+            )
+        return evidence
+
+    @staticmethod
+    def format_evidence_for_prompt(results: list[Evidence]) -> str:
         if not results:
             return "未检索到图谱关系。"
 
         lines = []
-        for idx, item in enumerate(results[: settings.GRAPH_RESULT_LIMIT], start=1):
-            source_name = item.get("source_name") or "未知实体"
-            rel_type = item.get("rel_type") or "相关"
-            target_name = item.get("target_name") or "未知值"
-            score = item.get("score")
-            score_text = "" if score is None else f" score={score}"
-            lines.append(f"[图谱事实{idx}] {source_name} -[{rel_type}]- {target_name}{score_text}")
+        for item in results[: settings.GRAPH_RESULT_LIMIT]:
+            score_text = "" if item.score is None else f" score={item.score}"
+            lines.append(f"[{item.evidence_id}] 图谱事实 {item.content}{score_text}")
         return "\n".join(lines)
+
+    @staticmethod
+    def format_for_prompt(results: list[dict]) -> str:
+        # 这里把结构化图谱结果转成紧凑文本，方便直接放进 prompt。
+        return GraphRetriever.format_evidence_for_prompt(GraphRetriever.to_evidence(results))

@@ -5,6 +5,7 @@ from fastapi import FastAPI, Form, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 
+from hybrid_graph_rag_app import settings
 from hybrid_graph_rag_app.hybrid_service import HybridGraphRAGService
 
 
@@ -38,6 +39,12 @@ async def health():
         "vector_backend": service.vector_retriever.backend,
         "graph_endpoint": "neo4j@127.0.0.1:8687",
         "routing": "enabled",
+        "verifier": "enabled",
+        "response_schema": "trusted_rag_v1",
+        "query_expansion": settings.QUERY_EXPANSION_ENABLED,
+        "hyde": settings.HYDE_ENABLED,
+        "memory": "layered",
+        "long_term_memory": "enabled",
     }
 
 
